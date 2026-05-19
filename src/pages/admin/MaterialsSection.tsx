@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
-import { Search, Plus, Trash2, Edit2 } from "lucide-react";
+import { Search, Plus, Trash2, Edit2, X } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 export default function MaterialsSection() {

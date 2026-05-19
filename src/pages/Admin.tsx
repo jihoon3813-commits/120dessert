@@ -25,7 +25,8 @@ import {
   ShoppingBag,
   Tag,
   Truck,
-  Store
+  Store,
+  MessageSquare
 } from "lucide-react";
 import * as Icons from "lucide-react";
 import { cn } from "../lib/utils";
@@ -507,10 +508,28 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           <div className="px-8 h-14 flex items-center justify-between">
             <div>
               <h1 className="text-base font-black text-neutral-900 tracking-tight">
-                {{ inquiries: "가맹 도입 문의 관리", stores: "가맹점 관리", products: "제품 관리", categories: "카테고리 관리", deliveries: "배송 관리", portalMenus: "점주 포털 메뉴 관리" }[activeTab]}
+                {{
+                  inquiries: "가맹 도입 문의 관리",
+                  stores: "가맹점 관리",
+                  products: "제품 관리",
+                  categories: "카테고리 관리",
+                  deliveries: "배송 관리",
+                  portalMenus: "점주 포털 메뉴 관리",
+                  storeInquiries: "점주 문의 관리",
+                  materials: "교육/홍보물 관리",
+                }[activeTab]}
               </h1>
               <p className="text-xs text-neutral-400 mt-0.5">
-                {{ inquiries: "홈페이지 도입 문의 폼을 통해 접수된 실시간 데이터", stores: "점주 로그인 계정 및 가맹점 상세 정보를 관리합니다", products: "쇼핑몰 판매 제품을 등록·수정·삭제합니다", categories: "제품 카테고리를 관리합니다", deliveries: "배송 현황을 관리합니다", portalMenus: "점주 전용 포털의 퀵 메뉴를 동적으로 관리" }[activeTab]}
+                {{
+                  inquiries: "홈페이지 도입 문의 폼을 통해 접수된 실시간 데이터",
+                  stores: "점주 로그인 계정 및 가맹점 상세 정보를 관리합니다",
+                  products: "쇼핑몰 판매 제품을 등록·수정·삭제합니다",
+                  categories: "제품 카테고리를 관리합니다",
+                  deliveries: "배송 현황을 관리합니다",
+                  portalMenus: "점주 전용 포털의 퀵 메뉴를 동적으로 관리",
+                  storeInquiries: "가맹점주들이 접수한 1:1 문의 및 건의사항을 관리합니다",
+                  materials: "점주 포털에 노출될 교육자료 및 홍보물을 관리합니다",
+                }[activeTab]}
               </p>
             </div>
             <div className="flex items-center gap-3">

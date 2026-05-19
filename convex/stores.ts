@@ -18,6 +18,8 @@ export const create = mutation({
     detailAddress: v.optional(v.string()),
     menus: v.array(v.string()),
     status: v.string(),
+    registerDate: v.optional(v.string()),
+    cancellationDate: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     // Check if storeId already exists
@@ -50,6 +52,8 @@ export const update = mutation({
     detailAddress: v.optional(v.string()),
     menus: v.array(v.string()),
     status: v.string(),
+    registerDate: v.optional(v.string()),
+    cancellationDate: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { id, ...data } = args;
@@ -153,5 +157,47 @@ export const seedDefault = mutation({
         createdAt: Date.now(),
       });
     }
+  },
+});
+
+export const createMultiple = mutation({
+  args: {
+    stores: v.array(
+      v.object({
+        storeId: v.string(),
+        password: v.string(),
+        storeName: v.string(),
+        ownerName: v.string(),
+        contact: v.string(),
+        address: v.string(),
+        detailAddress: v.optional(v.string()),
+        menus: v.array(v.string()),
+        status: v.string(),
+        registerDate: v.optional(v.string()),
+        cancellationDate: v.optional(v.string()),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const results = [];
+    for (const store of args.stores) {
+      // Check if storeId already exists
+      const existing = await ctx.db
+        .query("stores")
+        .filter((q) => q.eq(q.field("storeId"), store.storeId))
+        .first();
+
+      if (existing) {
+        results.push({ storeId: store.storeId, success: false, error: "이미 존재하는 아이디입니다." });
+        continue;
+      }
+
+      const id = await ctx.db.insert("stores", {
+        ...store,
+        createdAt: Date.now(),
+      });
+      results.push({ storeId: store.storeId, success: true, id });
+    }
+    return results;
   },
 });

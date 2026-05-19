@@ -934,8 +934,16 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                 {o.items.map(i => `${i.name}(${i.quantity}개)`).join(", ")}
                               </div>
                             </td>
-                            <td className="p-4 text-right font-black text-neutral-950">
-                              {o.totalAmount.toLocaleString()}원
+                            <td className="p-4 text-right">
+                              <div className="font-black text-neutral-950">{o.totalAmount.toLocaleString()}원</div>
+                              <div className="text-[10px] text-neutral-500 mt-1">
+                                {o.paymentMethod || "미지정"} | <span className={cn(
+                                  o.paymentStatus === "결제완료" ? "text-green-600 font-bold" : "text-amber-600"
+                                )}>{o.paymentStatus || "결제대기"}</span>
+                              </div>
+                              {o.approveNo && (
+                                <div className="text-[9px] text-neutral-400 font-mono mt-0.5">승인: {o.approveNo}</div>
+                              )}
                             </td>
                             <td className="p-4 text-center">
                               <span className={cn(

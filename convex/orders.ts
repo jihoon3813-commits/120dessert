@@ -26,6 +26,9 @@ export const create = mutation({
       })
     ),
     totalAmount: v.number(),
+    paymentMethod: v.optional(v.string()),
+    paymentStatus: v.optional(v.string()),
+    approveNo: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     // 1. Create order
@@ -35,6 +38,9 @@ export const create = mutation({
       totalAmount: args.totalAmount,
       status: "pending",
       createdAt: Date.now(),
+      paymentMethod: args.paymentMethod,
+      paymentStatus: args.paymentStatus,
+      approveNo: args.approveNo,
     });
 
     // 2. Deduct product inventory quantities

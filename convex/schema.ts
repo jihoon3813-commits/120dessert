@@ -59,6 +59,9 @@ export default defineSchema({
     totalAmount: v.number(),
     status: v.string(), // pending, shipping, completed
     createdAt: v.number(),
+    paymentMethod: v.optional(v.string()),
+    paymentStatus: v.optional(v.string()),
+    approveNo: v.optional(v.string()),
   }),
   stores: defineTable({
     storeId: v.string(), // 아이디
@@ -71,6 +74,8 @@ export default defineSchema({
     menus: v.array(v.string()), // 도입 메뉴 목록
     status: v.string(), // 승인 / 보류 / 중지 / 폐업
     createdAt: v.number(),
+    registerDate: v.optional(v.string()), // 가맹점 등록일
+    cancellationDate: v.optional(v.string()), // 해지일
   }),
   storeInquiries: defineTable({
     storeName: v.string(),

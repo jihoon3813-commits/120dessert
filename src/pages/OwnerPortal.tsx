@@ -16,7 +16,12 @@ import {
   ShoppingCart,
   ChevronLeft,
   Loader2,
-  ImageIcon
+  ImageIcon,
+  CreditCard,
+  Lock,
+  CheckCircle,
+  Wallet,
+  X
 } from "lucide-react";
 import * as Icons from "lucide-react";
 import { cn } from "../lib/utils";
@@ -639,26 +644,103 @@ function OrderView({
 
   const totalAmount = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
 
-  const handlePlaceOrder = async () => {
+  // Payment PG Simulation States
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "kakaopay" | "tosspay" | "naverpay" | "bank">("card");
+  const [cardName, setCardName] = useState("신한카드");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
+  const [cardPwd, setCardPwd] = useState("");
+  const [bankName, setBankName] = useState("국민은행");
+  const [paymentStep, setPaymentStep] = useState<"select" | "processing" | "success">("select");
+  const [approveNo, setApproveNo] = useState("");
+  const [processingText, setProcessingText] = useState("PG사 결제 세션을 연결하고 있습니다...");
+
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
+    const matches = v.match(/\d{4,16}/g);
+    const match = (matches && matches[0]) || "";
+    const parts = [];
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+    return parts.length > 0 ? parts.join("-") : v;
+  };
+
+  const formatExpiry = (value: string) => {
+    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
+    if (v.length >= 2) {
+      return v.substring(0, 2) + "/" + v.substring(2, 4);
+    }
+    return v;
+  };
+
+  const handlePlaceOrder = () => {
     if (cartItems.length === 0) {
       alert("주문할 상품을 선택해주세요.");
       return;
     }
-    setIsSubmitting(true);
-    try {
-      await createOrder({
-        storeName,
-        items: cartItems,
-        totalAmount,
-      });
-      alert("발주가 성공적으로 접수되었습니다.");
-      setCart({});
-      onOrderSuccess();
-    } catch (err) {
-      alert("주문 중 오류가 발생했습니다: " + err);
-    } finally {
-      setIsSubmitting(false);
+    setPaymentStep("select");
+    setCardNumber("");
+    setCardExpiry("");
+    setCardCvv("");
+    setCardPwd("");
+    setShowPaymentModal(true);
+  };
+
+  const processPaymentAndOrder = async () => {
+    if (paymentMethod === "card") {
+      if (cardNumber.replace(/[^0-9]/g, "").length < 15) {
+        alert("올바른 카드 번호를 입력해주세요.");
+        return;
+      }
+      if (cardExpiry.length < 5) {
+        alert("올바른 카드 유효기간을 입력해주세요.");
+        return;
+      }
+      if (cardCvv.length < 3) {
+        alert("CVV 번호를 입력해주세요.");
+        return;
+      }
     }
+
+    setPaymentStep("processing");
+    setProcessingText("PG사 결제 세션을 연결하고 있습니다...");
+
+    setTimeout(() => {
+      setProcessingText("카드사 승인을 요청하고 있습니다...");
+      setTimeout(() => {
+        setProcessingText("결제 승인 정보를 저장하고 있습니다...");
+      }, 700);
+    }, 600);
+
+    setTimeout(async () => {
+      try {
+        const methodStr = 
+          paymentMethod === "card" ? `신용카드 (${cardName})` :
+          paymentMethod === "kakaopay" ? "카카오페이" :
+          paymentMethod === "tosspay" ? "토스페이" :
+          paymentMethod === "naverpay" ? "네이버페이" : "무통장입금";
+
+        const generatedApproveNo = Math.floor(10000000 + Math.random() * 90000000).toString();
+        setApproveNo(generatedApproveNo);
+
+        await createOrder({
+          storeName,
+          items: cartItems,
+          totalAmount,
+          paymentMethod: methodStr,
+          paymentStatus: paymentMethod === "bank" ? "입금대기" : "결제완료",
+          approveNo: paymentMethod === "bank" ? undefined : generatedApproveNo,
+        });
+
+        setPaymentStep("success");
+      } catch (err) {
+        alert("주문 접수 중 오류가 발생했습니다: " + err);
+        setPaymentStep("select");
+      }
+    }, 2000);
   };
 
   return (
@@ -855,17 +937,244 @@ function OrderView({
             disabled={cartItems.length === 0 || isSubmitting}
             className="w-full py-3 bg-neutral-900 text-white font-bold text-sm rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 size={14} className="animate-spin" />
-                발주 접수 중...
-              </>
-            ) : (
-              "발주 신청 완료"
-            )}
+            결제하기 및 발주 완료
           </button>
         </div>
       </div>
+
+      {/* simulated PG checkout modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-neutral-100 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
+                <span className="font-bold text-neutral-900 text-sm flex items-center gap-1.5">
+                  <Lock size={14} className="text-neutral-500" />
+                  안전한 PG 결제 세션
+                </span>
+              </div>
+              {paymentStep !== "processing" && (
+                <button
+                  onClick={() => setShowPaymentModal(false)}
+                  className="text-neutral-400 hover:text-neutral-600 transition-colors p-1"
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </div>
+
+            {/* Modal Body */}
+            {paymentStep === "select" && (
+              <div className="p-6 space-y-6 overflow-y-auto">
+                {/* Order Information Card */}
+                <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-200 space-y-2">
+                  <div className="flex justify-between text-xs text-neutral-500">
+                    <span>가맹점</span>
+                    <span className="font-bold text-neutral-800">{storeName}</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-neutral-500">
+                    <span>주문내역</span>
+                    <span className="font-bold text-neutral-800">
+                      {cartItems.length > 0
+                        ? `${cartItems[0].name} ${cartItems.length > 1 ? `외 ${cartItems.length - 1}건` : ""}`
+                        : ""}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm pt-2 border-t border-neutral-200">
+                    <span className="font-bold text-neutral-800">결제 금액</span>
+                    <span className="font-black text-amber-600 text-lg">{totalAmount.toLocaleString()}원</span>
+                  </div>
+                </div>
+
+                {/* Payment Method Selector */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-neutral-500">결제 수단 선택</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { id: "card", label: "신용/체크카드", icon: <CreditCard size={15} /> },
+                      { id: "kakaopay", label: "카카오페이", icon: <span className="w-2.5 h-2.5 rounded-full bg-[#FEE500]"></span> },
+                      { id: "tosspay", label: "토스페이", icon: <span className="w-2.5 h-2.5 rounded-full bg-[#0064FF]"></span> },
+                      { id: "naverpay", label: "네이버페이", icon: <span className="w-2.5 h-2.5 rounded-full bg-[#03C75A]"></span> },
+                      { id: "bank", label: "무통장 입금", icon: <Wallet size={15} /> },
+                    ].map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setPaymentMethod(m.id as any)}
+                        className={cn(
+                          "flex items-center gap-2 px-3 py-2.5 border rounded-lg text-xs font-bold transition-all text-left",
+                          paymentMethod === m.id
+                            ? "bg-neutral-900 border-neutral-900 text-white shadow-sm"
+                            : "bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50"
+                        )}
+                      >
+                        {m.icon}
+                        <span>{m.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Form fields based on selection */}
+                {paymentMethod === "card" && (
+                  <div className="space-y-3 bg-neutral-50/50 p-4 border border-neutral-200 rounded-xl animate-in fade-in duration-200">
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-500 mb-1">카드사</label>
+                      <select
+                        value={cardName}
+                        onChange={(e) => setCardName(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:border-neutral-900"
+                      >
+                        {["신한카드", "KB국민카드", "현대카드", "삼성카드", "BC카드", "하나카드", "NH농협카드"].map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-500 mb-1">카드번호</label>
+                      <input
+                        type="text"
+                        placeholder="0000-0000-0000-0000"
+                        maxLength={19}
+                        value={cardNumber}
+                        onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                        className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:border-neutral-900 text-center font-mono"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-500 mb-1">유효기간</label>
+                        <input
+                          type="text"
+                          placeholder="MM/YY"
+                          maxLength={5}
+                          value={cardExpiry}
+                          onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
+                          className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:border-neutral-900 text-center font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-500 mb-1">CVV 번호</label>
+                        <input
+                          type="password"
+                          placeholder="카드 뒷면 3자리"
+                          maxLength={3}
+                          value={cardCvv}
+                          onChange={(e) => setCardCvv(e.target.value.replace(/[^0-9]/g, ""))}
+                          className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:border-neutral-900 text-center font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {["kakaopay", "tosspay", "naverpay"].includes(paymentMethod) && (
+                  <div className="p-4 border border-neutral-200 bg-neutral-50/50 rounded-xl text-center space-y-3 animate-in fade-in duration-200">
+                    <div className="w-10 h-10 rounded-full bg-white border border-neutral-200 flex items-center justify-center mx-auto text-neutral-500">
+                      <Lock size={18} />
+                    </div>
+                    <div className="text-xs font-bold text-neutral-800">
+                      스마트폰 앱 또는 QR 결제가 진행됩니다.
+                    </div>
+                    <p className="text-[10px] text-neutral-400">
+                      [결제하기] 버튼 클릭 시 모바일 결제 테스트 시뮬레이션 창이 활성화됩니다.
+                    </p>
+                  </div>
+                )}
+
+                {paymentMethod === "bank" && (
+                  <div className="p-4 border border-neutral-200 bg-neutral-50/50 rounded-xl space-y-3 animate-in fade-in duration-200">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-neutral-500 font-medium">은행명</span>
+                      <span className="font-bold text-neutral-800">국민은행 (120디저트 본사계좌)</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-neutral-500 font-medium">가상계좌번호</span>
+                      <span className="font-mono font-bold text-neutral-800">120-120-120120</span>
+                    </div>
+                    <p className="text-[10px] text-neutral-400 text-center bg-white p-2 border border-neutral-200 rounded-lg">
+                      주문 완료 후 해당 가상계좌로 발주 금액을 입금하시면 본사에서 확인 후 상품 배송을 시작합니다.
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={processPaymentAndOrder}
+                  className="w-full py-3.5 bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-sm rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
+                >
+                  <Lock size={14} />
+                  {paymentMethod === "bank" ? "발주 주문 등록하기" : `${totalAmount.toLocaleString()}원 안전결제`}
+                </button>
+              </div>
+            )}
+
+            {paymentStep === "processing" && (
+              <div className="p-12 text-center space-y-6">
+                <div className="w-16 h-16 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <div className="space-y-2">
+                  <h3 className="font-bold text-neutral-900 text-base">결제가 진행 중입니다</h3>
+                  <p className="text-xs text-neutral-400 font-medium animate-pulse">{processingText}</p>
+                </div>
+              </div>
+            )}
+
+            {paymentStep === "success" && (
+              <div className="p-8 text-center space-y-6 animate-in fade-in zoom-in-95 duration-300">
+                <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto border-2 border-green-200">
+                  <CheckCircle size={36} className="animate-bounce" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-bold text-neutral-900 text-lg">
+                    {paymentMethod === "bank" ? "주문 접수 완료!" : "결제가 정상적으로 완료되었습니다"}
+                  </h3>
+                  <p className="text-xs text-neutral-500">안전하게 거래 정보가 백엔드에 반영되었습니다.</p>
+                </div>
+
+                <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-200 text-left text-xs space-y-2 font-medium text-neutral-600">
+                  <div className="flex justify-between">
+                    <span>가맹점</span>
+                    <span className="font-bold text-neutral-900">{storeName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>결제수단</span>
+                    <span className="font-bold text-neutral-900">
+                      {paymentMethod === "card" ? `신용카드 (${cardName})` :
+                       paymentMethod === "kakaopay" ? "카카오페이" :
+                       paymentMethod === "tosspay" ? "토스페이" :
+                       paymentMethod === "naverpay" ? "네이버페이" : "무통장입금"}
+                    </span>
+                  </div>
+                  {paymentMethod !== "bank" && (
+                    <div className="flex justify-between">
+                      <span>승인번호</span>
+                      <span className="font-mono font-bold text-neutral-900">{approveNo}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-2 border-t border-neutral-200 text-sm font-bold text-neutral-900">
+                    <span>결제금액</span>
+                    <span className="text-amber-600 font-black">{totalAmount.toLocaleString()}원</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setCart({});
+                    onOrderSuccess();
+                  }}
+                  className="w-full py-3 bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-sm rounded-xl transition-all"
+                >
+                  확인
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -931,7 +1240,17 @@ function OrdersView({
                           {o.items.map((i) => `${i.name}(${i.quantity}개)`).join(", ")}
                         </div>
                       </td>
-                      <td className="p-4 text-right font-black text-neutral-950">{o.totalAmount.toLocaleString()}원</td>
+                      <td className="p-4 text-right">
+                        <div className="font-black text-neutral-950">{o.totalAmount.toLocaleString()}원</div>
+                        <div className="text-[10px] text-neutral-500 mt-1">
+                          {o.paymentMethod || "미지정"} | <span className={cn(
+                            o.paymentStatus === "결제완료" ? "text-green-600 font-bold" : "text-amber-600"
+                          )}>{o.paymentStatus || "결제대기"}</span>
+                        </div>
+                        {o.approveNo && (
+                          <div className="text-[9px] text-neutral-400 font-mono mt-0.5">승인: {o.approveNo}</div>
+                        )}
+                      </td>
                       <td className="p-4 text-center">
                         <span
                           className={cn(

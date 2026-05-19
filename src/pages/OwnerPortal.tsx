@@ -586,7 +586,7 @@ function OrderView({
     .map(([id, qty]) => {
       const p = products.find((prod) => prod._id === id);
       if (!p) return null;
-      const price = p.supplyPrice - (p.discountAmount || 0);
+      const price = p.salePrice - (p.discountAmount || 0);
       const numQty = qty as number;
       return {
         productId: p._id,
@@ -682,7 +682,7 @@ function OrderView({
             filteredProducts.map((p) => {
               const currentQty = cart[p._id] || 0;
               const hasDiscount = p.discountAmount && p.discountAmount > 0;
-              const finalPrice = p.supplyPrice - (p.discountAmount || 0);
+              const finalPrice = p.salePrice - (p.discountAmount || 0);
 
               return (
                 <div
@@ -720,7 +720,7 @@ function OrderView({
                         <span className="text-sm font-black text-neutral-900">{finalPrice.toLocaleString()}원</span>
                         {hasDiscount && (
                           <span className="text-[10px] text-neutral-400 line-through">
-                            {p.supplyPrice.toLocaleString()}원
+                            {p.salePrice.toLocaleString()}원
                           </span>
                         )}
                       </div>

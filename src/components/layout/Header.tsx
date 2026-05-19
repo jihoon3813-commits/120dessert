@@ -8,9 +8,9 @@ export default function Header() {
   const location = useLocation();
 
   const navLinks = [
-    { name: "브랜드소개", path: "/brand" },
+    { name: "브랜드소개", path: "/#brand" },
     { name: "메뉴소개", path: "/#menu" },
-    { name: "도입안내", path: "/adoption" },
+    { name: "도입안내", path: "/#adoption" },
     { name: "성공사례", path: "/#success" },
     { name: "가맹점 보기", path: "/stores" },
     { name: "가맹문의", path: "/inquiry" },
@@ -20,7 +20,7 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 border-b border-neutral-200 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link to="/" className="font-black text-2xl tracking-tight text-neutral-900 hover:text-amber-500 transition-colors">
-          <span className="text-amber-500">120</span>디저트
+          <span className="text-amber-500">120pie</span>&coffee
         </Link>
 
         {/* Desktop Nav */}

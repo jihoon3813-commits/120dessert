@@ -553,20 +553,10 @@ function OrderView({
     savedStore?.storeId ? { storeId: savedStore.storeId } : "skip" as any
   );
 
-  // Filter categories by the store's introduced menus
-  const allowedCategories = categories.filter((cat) => {
-    if (!storeDetails || !storeDetails.menus) return true; // Show all if store data is loading or missing
-    return storeDetails.menus.includes(cat.name);
-  });
+  // Show all categories and active products registered in the head office admin
+  const allowedCategories = categories;
 
-  const allowedCategoryIds = allowedCategories.map(cat => cat._id);
-
-  // Filter products by active & allowed categories
-  const activeProducts = products.filter((p) => {
-    if (!p.isActive) return false;
-    if (!p.categoryId) return false; // Hide uncategorized products or show if no category at all
-    return allowedCategoryIds.includes(p.categoryId);
-  });
+  const activeProducts = products.filter((p) => p.isActive);
 
   const filteredProducts =
     selectedCategoryId === "all"

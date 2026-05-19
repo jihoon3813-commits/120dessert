@@ -199,6 +199,7 @@ export default function ProductsSection() {
                 <th className="p-4">제품명</th>
                 <th className="p-4">카테고리</th>
                 <th className="p-4 text-right">판매가</th>
+                <th className="p-4 text-right">할인적용가</th>
                 <th className="p-4 text-right">공급가</th>
                 <th className="p-4 w-28 text-center">상태</th>
                 <th className="p-4 w-36 text-center">순서 조정</th>
@@ -207,7 +208,7 @@ export default function ProductsSection() {
             </thead>
             <tbody className="divide-y divide-neutral-100 text-sm">
               {sorted.length === 0 ? (
-                <tr><td colSpan={9} className="p-10 text-center text-neutral-400">등록된 제품이 없습니다.</td></tr>
+                <tr><td colSpan={10} className="p-10 text-center text-neutral-400">등록된 제품이 없습니다.</td></tr>
               ) : (
                 sorted.map((p, i) => (
                   <tr key={p._id} className="hover:bg-neutral-50 transition-colors">
@@ -228,6 +229,16 @@ export default function ProductsSection() {
                     </td>
                     <td className="p-4 text-neutral-500 text-xs">{catMap[p.categoryId ?? ""] ?? "—"}</td>
                     <td className="p-4 text-right font-bold text-neutral-900">{p.salePrice.toLocaleString()}원</td>
+                    <td className="p-4 text-right">
+                      <div className="font-bold text-neutral-900">
+                        {(p.salePrice - (p.discountAmount || 0)).toLocaleString()}원
+                      </div>
+                      {p.discountAmount && p.discountAmount > 0 ? (
+                        <div className="text-[10px] text-amber-500 font-bold">-{p.discountAmount.toLocaleString()}원</div>
+                      ) : (
+                        <div className="text-[10px] text-neutral-400">—</div>
+                      )}
+                    </td>
                     <td className="p-4 text-right text-neutral-500">{p.supplyPrice.toLocaleString()}원</td>
                     <td className="p-4 text-center">
                       <button onClick={() => handleToggleActive(p)}

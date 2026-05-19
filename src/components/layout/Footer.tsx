@@ -14,7 +14,7 @@ export default function Footer() {
           <div className="flex gap-4 text-sm font-medium">
             <Link to="/brand" className="hover:text-white transition-colors">회사소개</Link>
             <Link to="/inquiry" className="hover:text-white transition-colors">제휴 및 입점 문의</Link>
-            <Link to="/portal" className="text-amber-500 hover:text-amber-400 transition-colors">점주전용</Link>
+            <Link to="/portal" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:text-amber-400 transition-colors">점주전용</Link>
           </div>
         </div>
 
@@ -37,7 +37,7 @@ export default function Footer() {
           </div>
           <div className="mt-4 flex items-center justify-between text-xs text-neutral-600">
             <span>© 120PIE&COFFEE. All rights reserved.</span>
-            <Link to="/admin" className="text-neutral-850 hover:text-neutral-500 transition-colors text-[11px] font-medium">
+            <Link to="/admin" target="_blank" rel="noopener noreferrer" className="text-neutral-850 hover:text-neutral-500 transition-colors text-[11px] font-medium">
               본사 관리자
             </Link>
           </div>

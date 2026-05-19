@@ -43,6 +43,8 @@ export default function Header() {
           <div className="flex items-center gap-3 border-l border-neutral-200 pl-6">
             <Link
               to="/portal"
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-4 py-2 text-sm font-bold text-neutral-600 bg-neutral-100 rounded hover:bg-neutral-200 transition-colors"
             >
               점주전용
@@ -83,6 +85,8 @@ export default function Header() {
             <div className="flex flex-col gap-3 mt-6 px-3">
               <Link
                 to="/portal"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center justify-center w-full px-4 py-3.5 text-sm font-bold text-neutral-600 bg-neutral-100 rounded"
                 onClick={() => setIsMenuOpen(false)}
               >

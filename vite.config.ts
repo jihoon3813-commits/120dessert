@@ -5,8 +5,9 @@ import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
+  const isDev = mode === 'development';
   return {
-    base: process.env.VERCEL === 'true' ? '/' : '/120dessert/',
+    base: isDev ? '/' : (process.env.VERCEL === 'true' ? '/' : '/120dessert/'),
     plugins: [react(), tailwindcss()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),

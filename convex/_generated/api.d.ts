@@ -14,6 +14,7 @@ import type * as inquiries from "../inquiries.js";
 import type * as orders from "../orders.js";
 import type * as portalMenus from "../portalMenus.js";
 import type * as products from "../products.js";
+import type * as stores from "../stores.js";
 
 import type {
   ApiFromModules,
@@ -28,6 +29,7 @@ declare const fullApi: ApiFromModules<{
   orders: typeof orders;
   portalMenus: typeof portalMenus;
   products: typeof products;
+  stores: typeof stores;
 }>;
 
 /**

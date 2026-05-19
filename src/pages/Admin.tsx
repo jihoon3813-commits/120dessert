@@ -26,7 +26,8 @@ import {
   Tag,
   Truck,
   Store,
-  MessageSquare
+  MessageSquare,
+  Bell
 } from "lucide-react";
 import * as Icons from "lucide-react";
 import { cn } from "../lib/utils";
@@ -35,9 +36,10 @@ import CategoriesSection from "./admin/CategoriesSection";
 import StoresSection from "./admin/StoresSection";
 import StoreInquiriesSection from "./admin/StoreInquiriesSection";
 import MaterialsSection from "./admin/MaterialsSection";
+import NoticesSection from "./admin/NoticesSection";
 
 // Types
-type AdminTab = "inquiries" | "products" | "categories" | "deliveries" | "portalMenus" | "stores" | "storeInquiries" | "materials";
+type AdminTab = "inquiries" | "products" | "categories" | "deliveries" | "portalMenus" | "stores" | "storeInquiries" | "materials" | "notices";
 type StatusFilter = "all" | "pending" | "contacted" | "completed";
 type TypeFilter = "all" | "신규 도입" | "공동간판" | "단독 전환" | "추가 도입";
 
@@ -444,6 +446,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     { id: "inquiries", icon: <LayoutDashboard size={16} />, label: "가맹 도입 문의", badge: inquiries.length },
     { id: "stores", icon: <Store size={16} />, label: "가맹점 관리", badge: stores.length },
     { id: "storeInquiries", icon: <MessageSquare size={16} />, label: "점주 문의 관리" },
+    { id: "notices", icon: <Bell size={16} />, label: "공지사항 관리" },
     { id: "products", icon: <ShoppingBag size={16} />, label: "제품 관리" },
     { id: "categories", icon: <Tag size={16} />, label: "카테고리 관리" },
     { id: "deliveries", icon: <Truck size={16} />, label: "배송 관리", badge: orders.filter((o) => o.status === "pending").length },
@@ -517,6 +520,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   portalMenus: "점주 포털 메뉴 관리",
                   storeInquiries: "점주 문의 관리",
                   materials: "교육/홍보물 관리",
+                  notices: "공지사항 관리",
                 }[activeTab]}
               </h1>
               <p className="text-xs text-neutral-400 mt-0.5">
@@ -529,6 +533,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   portalMenus: "점주 전용 포털의 퀵 메뉴를 동적으로 관리",
                   storeInquiries: "가맹점주들이 접수한 1:1 문의 및 건의사항을 관리합니다",
                   materials: "점주 포털에 노출될 교육자료 및 홍보물을 관리합니다",
+                  notices: "점주 포털에 게재할 안내문 및 정기 공지사항을 관리합니다",
                 }[activeTab]}
               </p>
             </div>
@@ -881,6 +886,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           {activeTab === "categories" && <CategoriesSection />}
           {activeTab === "storeInquiries" && <StoreInquiriesSection />}
           {activeTab === "materials" && <MaterialsSection />}
+          {activeTab === "notices" && <NoticesSection />}
           {activeTab === "deliveries" && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

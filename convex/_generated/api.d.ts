@@ -12,6 +12,7 @@ import type * as categories from "../categories.js";
 import type * as files from "../files.js";
 import type * as inquiries from "../inquiries.js";
 import type * as materials from "../materials.js";
+import type * as notices from "../notices.js";
 import type * as orders from "../orders.js";
 import type * as portalMenus from "../portalMenus.js";
 import type * as products from "../products.js";
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   inquiries: typeof inquiries;
   materials: typeof materials;
+  notices: typeof notices;
   orders: typeof orders;
   portalMenus: typeof portalMenus;
   products: typeof products;

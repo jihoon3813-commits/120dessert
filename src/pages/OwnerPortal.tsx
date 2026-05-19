@@ -22,7 +22,7 @@ import * as Icons from "lucide-react";
 import { cn } from "../lib/utils";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { StoreInquiriesView, MaterialsView } from "./owner/StoreInquiriesAndMaterials";
+import { StoreInquiriesView, MaterialsView, NoticesView } from "./owner/StoreInquiriesAndMaterials";
 
 function PortalIcon({ name, className, size = 24 }: { name: string; className?: string; size?: number }) {
   const IconComponent = (Icons as any)[name];
@@ -39,7 +39,7 @@ export default function OwnerPortal() {
     storeName: string;
     ownerName: string;
   } | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "order" | "orders" | "inquiries" | "materials">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "order" | "orders" | "inquiries" | "materials" | "notices">("dashboard");
   const [inquiryType, setInquiryType] = useState("1:1 문의");
 
   const openInquiry = (type: string) => {
@@ -49,6 +49,8 @@ export default function OwnerPortal() {
   const portalMenus = useQuery(api.portalMenus.list);
   const seedPortalMenus = useMutation(api.portalMenus.seedDefault);
   const seedStores = useMutation(api.stores.seedDefault);
+  const seedNotices = useMutation(api.notices.seedDefault);
+  const notices = useQuery(api.notices.list);
 
   useEffect(() => {
     const saved = localStorage.getItem("owner_store");
@@ -72,6 +74,12 @@ export default function OwnerPortal() {
       seedPortalMenus();
     }
   }, [portalMenus, seedPortalMenus]);
+
+  useEffect(() => {
+    if (notices !== undefined && notices.length === 0) {
+      seedNotices();
+    }
+  }, [notices, seedNotices]);
 
   const handleLoginSuccess = (store: any) => {
     const storeInfo = {
@@ -117,7 +125,7 @@ export default function OwnerPortal() {
                 <Materials setActiveTab={setActiveTab} />
               </div>
               <div className="lg:col-span-1 flex flex-col gap-6">
-                <Notices />
+                <Notices setActiveTab={setActiveTab} />
                 <UpsellBanner openInquiry={openInquiry} />
                 <SupportBanner openInquiry={openInquiry} />
               </div>
@@ -136,8 +144,10 @@ export default function OwnerPortal() {
           />
         ) : activeTab === "inquiries" ? (
           <StoreInquiriesView storeName={loggedStore?.storeName || "가맹점"} setActiveTab={setActiveTab} initialType={inquiryType} />
-        ) : (
+        ) : activeTab === "materials" ? (
           <MaterialsView setActiveTab={setActiveTab} />
+        ) : (
+          <NoticesView setActiveTab={setActiveTab} />
         )}
       </div>
     </div>
@@ -227,8 +237,8 @@ function PortalHeader({
   setActiveTab,
 }: {
   onLogout: () => void;
-  activeTab: "dashboard" | "order" | "orders";
-  setActiveTab: (t: "dashboard" | "order" | "orders") => void;
+  activeTab: "dashboard" | "order" | "orders" | "inquiries" | "materials" | "notices";
+  setActiveTab: (t: any) => void;
 }) {
   return (
     <header className="bg-white border-b border-neutral-200 sticky top-0 z-40">
@@ -240,6 +250,7 @@ function PortalHeader({
           <nav className="hidden md:flex gap-4">
             {[
               { id: "dashboard", label: "대시보드" },
+              { id: "notices", label: "공지사항" },
               { id: "order", label: "주문하기" },
               { id: "orders", label: "주문내역" },
             ].map((item) => (
@@ -340,6 +351,8 @@ function QuickMenus({ menus, setActiveTab }: { menus: any[]; setActiveTab: (t: a
               setActiveTab("inquiries");
             } else if (m.link === "/education" || m.link === "/promotions") {
               setActiveTab("materials");
+            } else if (m.link === "/notices" || m.link === "/notice") {
+              setActiveTab("notices");
             } else if (m.link) {
               if (m.link.startsWith("http")) {
                 window.open(m.link, "_blank");
@@ -477,29 +490,34 @@ function Materials({ setActiveTab }: { setActiveTab: (t: any) => void }) {
   );
 }
 
-function Notices() {
+function Notices({ setActiveTab }: { setActiveTab: (t: any) => void }) {
+  const notices = useQuery(api.notices.list) || [];
+  const visibleNotices = notices.filter(n => n.isVisible).slice(0, 3);
+
   return (
     <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
       <div className="p-4 border-b border-neutral-100 flex justify-between items-center bg-neutral-50/50">
         <h3 className="font-bold text-neutral-900">최근 공지사항</h3>
-        <button className="text-xs font-medium text-neutral-500 hover:text-neutral-900">전체보기</button>
+        <button onClick={() => setActiveTab("notices")} className="text-xs font-medium text-neutral-500 hover:text-neutral-900">전체보기</button>
       </div>
       <div className="divide-y divide-neutral-100">
-        {[
-          { title: "동절기 배송 일정 단축 안내", date: "2023.10.27", isNew: true },
-          { title: "에그120 신규 홍보물 업로드 안내", date: "2023.10.20", isNew: false },
-          { title: "10월 시스템 점검 안내 (완료)", date: "2023.10.15", isNew: false },
-        ].map((n, i) => (
-          <div key={i} className="p-4 cursor-pointer hover:bg-neutral-50 transition-colors flex gap-3">
-            <div>
-              <div className="text-sm font-bold text-neutral-900 flex items-center gap-2">
-                {n.title}
-                {n.isNew && <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>}
+        {visibleNotices.length === 0 ? (
+          <div className="p-6 text-center text-xs text-neutral-400">등록된 공지사항이 없습니다.</div>
+        ) : (
+          visibleNotices.map((n) => (
+            <div key={n._id} onClick={() => setActiveTab("notices")} className="p-4 cursor-pointer hover:bg-neutral-50 transition-colors flex gap-3">
+              <div>
+                <div className="text-sm font-bold text-neutral-900 flex items-center gap-2">
+                  {n.title}
+                  {Date.now() - n.createdAt < 3600000 * 24 * 3 && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>
+                  )}
+                </div>
+                <div className="text-xs text-neutral-500 mt-1">{new Date(n.createdAt).toLocaleDateString()}</div>
               </div>
-              <div className="text-xs text-neutral-500 mt-1">{n.date}</div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

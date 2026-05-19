@@ -89,4 +89,10 @@ export default defineSchema({
     isVisible: v.boolean(),
     createdAt: v.number(),
   }),
+  notices: defineTable({
+    title: v.string(),
+    content: v.string(),
+    isVisible: v.boolean(),
+    createdAt: v.number(),
+  }),
 });

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
-import { ChevronLeft, MessageSquare, CheckCircle2, Clock, FileText, Download } from "lucide-react";
+import { ChevronLeft, MessageSquare, CheckCircle2, Clock, FileText, Download, Bell, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 export function StoreInquiriesView({ storeName, setActiveTab, initialType = "1:1 문의" }: { storeName: string, setActiveTab: (t: any) => void, initialType?: string }) {
@@ -169,6 +169,64 @@ export function MaterialsView({ setActiveTab }: { setActiveTab: (t: any) => void
               )}
             </div>
           ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function NoticesView({ setActiveTab }: { setActiveTab: (t: any) => void }) {
+  const notices = useQuery(api.notices.list) || [];
+  const visibleNotices = notices.filter(n => n.isVisible);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  return (
+    <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-neutral-200 min-h-[60vh] flex flex-col">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-4">
+          <button onClick={() => setActiveTab("dashboard")} className="p-2 -ml-2 rounded-lg hover:bg-neutral-100 text-neutral-500 transition-colors">
+            <ChevronLeft size={20} />
+          </button>
+          <div>
+            <h2 className="text-xl font-bold text-neutral-900">공지사항</h2>
+            <p className="text-xs text-neutral-500 mt-0.5">본사에서 가맹점주님들께 안내하는 공식 공지사항입니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4 flex-1">
+        {visibleNotices.length === 0 ? (
+          <div className="text-center py-12 text-neutral-400 text-sm">등록된 공지사항이 없습니다.</div>
+        ) : (
+          visibleNotices.map((n) => {
+            const isExpanded = expandedId === n._id;
+            return (
+              <div key={n._id} className="border border-neutral-200 rounded-xl overflow-hidden bg-white">
+                <div
+                  onClick={() => setExpandedId(isExpanded ? null : n._id)}
+                  className="p-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                      <Bell size={16} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-neutral-900 text-sm md:text-base">{n.title}</h3>
+                      <p className="text-xs text-neutral-400 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="text-neutral-400 ml-4">
+                    {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                  </div>
+                </div>
+                {isExpanded && (
+                  <div className="p-5 bg-neutral-50/50 border-t border-neutral-100 text-sm text-neutral-700 whitespace-pre-wrap leading-relaxed">
+                    {n.content}
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
     </div>

@@ -72,4 +72,21 @@ export default defineSchema({
     status: v.string(), // 승인 / 보류 / 중지 / 폐업
     createdAt: v.number(),
   }),
+  storeInquiries: defineTable({
+    storeName: v.string(),
+    type: v.string(), // 1:1문의, 건의하기, 추가 메뉴 등
+    title: v.string(),
+    content: v.string(),
+    status: v.string(), // 대기중, 답변완료
+    reply: v.optional(v.string()),
+    createdAt: v.number(),
+  }),
+  materials: defineTable({
+    title: v.string(),
+    type: v.string(), // 교육자료, 홍보물
+    format: v.string(),
+    fileUrl: v.optional(v.string()),
+    isVisible: v.boolean(),
+    createdAt: v.number(),
+  }),
 });

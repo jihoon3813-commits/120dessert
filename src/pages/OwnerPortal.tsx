@@ -22,6 +22,7 @@ import * as Icons from "lucide-react";
 import { cn } from "../lib/utils";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { StoreInquiriesView, MaterialsView } from "./owner/StoreInquiriesAndMaterials";
 
 function PortalIcon({ name, className, size = 24 }: { name: string; className?: string; size?: number }) {
   const IconComponent = (Icons as any)[name];
@@ -38,7 +39,13 @@ export default function OwnerPortal() {
     storeName: string;
     ownerName: string;
   } | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "order" | "orders">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "order" | "orders" | "inquiries" | "materials">("dashboard");
+  const [inquiryType, setInquiryType] = useState("1:1 문의");
+
+  const openInquiry = (type: string) => {
+    setInquiryType(type);
+    setActiveTab("inquiries");
+  };
   const portalMenus = useQuery(api.portalMenus.list);
   const seedPortalMenus = useMutation(api.portalMenus.seedDefault);
   const seedStores = useMutation(api.stores.seedDefault);
@@ -107,12 +114,12 @@ export default function OwnerPortal() {
                   storeName={loggedStore?.storeName || "가맹점"}
                   setActiveTab={setActiveTab}
                 />
-                <Materials />
+                <Materials setActiveTab={setActiveTab} />
               </div>
               <div className="lg:col-span-1 flex flex-col gap-6">
                 <Notices />
-                <UpsellBanner />
-                <SupportBanner />
+                <UpsellBanner openInquiry={openInquiry} />
+                <SupportBanner openInquiry={openInquiry} />
               </div>
             </div>
           </>
@@ -122,11 +129,15 @@ export default function OwnerPortal() {
             onOrderSuccess={() => setActiveTab("orders")}
             setActiveTab={setActiveTab}
           />
-        ) : (
+        ) : activeTab === "orders" ? (
           <OrdersView
             storeName={loggedStore?.storeName || "가맹점"}
             setActiveTab={setActiveTab}
           />
+        ) : activeTab === "inquiries" ? (
+          <StoreInquiriesView storeName={loggedStore?.storeName || "가맹점"} setActiveTab={setActiveTab} initialType={inquiryType} />
+        ) : (
+          <MaterialsView setActiveTab={setActiveTab} />
         )}
       </div>
     </div>
@@ -323,6 +334,12 @@ function QuickMenus({ menus, setActiveTab }: { menus: any[]; setActiveTab: (t: a
               setActiveTab("order");
             } else if (m.link === "/orders") {
               setActiveTab("orders");
+            } else if (m.link === "/inquiries") {
+              setActiveTab("inquiries");
+            } else if (m.link === "/suggestions") {
+              setActiveTab("inquiries");
+            } else if (m.link === "/education" || m.link === "/promotions") {
+              setActiveTab("materials");
             } else if (m.link) {
               if (m.link.startsWith("http")) {
                 window.open(m.link, "_blank");
@@ -354,6 +371,9 @@ function OrdersAndInquiries({
   const orders = useQuery(api.orders.list) || [];
   const myOrders = orders.filter((o) => o.storeName === storeName);
   const recentOrders = myOrders.slice(0, 2);
+
+  const storeInquiries = useQuery(api.storeInquiries.list) || [];
+  const myInquiries = storeInquiries.filter(i => i.storeName === storeName).slice(0, 2);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -404,53 +424,54 @@ function OrdersAndInquiries({
       <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden flex flex-col">
         <div className="p-4 border-b border-neutral-100 flex justify-between items-center bg-neutral-50/50">
           <h3 className="font-bold text-neutral-900">최근 문의</h3>
-          <button className="text-xs font-medium text-neutral-500 hover:text-neutral-900">더보기</button>
+          <button onClick={() => setActiveTab("inquiries")} className="text-xs font-medium text-neutral-500 hover:text-neutral-900">더보기</button>
         </div>
         <div className="divide-y divide-neutral-100 flex-1">
-          {[
-            { title: "파이 생지 보관방법 문의", date: "2023.10.24", status: "답변완료", color: "text-green-600" },
-            { title: "추가 발주 일정 안내 요청", date: "2023.10.26", status: "접수됨", color: "text-amber-600" },
-          ].map((o, i) => (
-            <div key={i} className="p-4 flex justify-between items-center">
-              <div>
-                <div className="text-sm font-bold text-neutral-900">{o.title}</div>
-                <div className="text-xs text-neutral-500 mt-1">{o.date}</div>
+          {myInquiries.length === 0 ? (
+            <div className="p-6 text-center text-xs text-neutral-400">최근 문의 내역이 없습니다.</div>
+          ) : (
+            myInquiries.map((o) => (
+              <div key={o._id} onClick={() => setActiveTab("inquiries")} className="p-4 flex justify-between items-center cursor-pointer hover:bg-neutral-50 transition-colors">
+                <div>
+                  <div className="text-sm font-bold text-neutral-900 line-clamp-1">{o.title}</div>
+                  <div className="text-xs text-neutral-500 mt-1">{new Date(o.createdAt).toLocaleDateString()}</div>
+                </div>
+                <div className={cn("text-xs font-bold shrink-0", o.status === "답변완료" ? "text-green-600" : "text-amber-600")}>{o.status}</div>
               </div>
-              <div className={cn("text-xs font-bold", o.color)}>{o.status}</div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function Materials() {
+function Materials({ setActiveTab }: { setActiveTab: (t: any) => void }) {
+  const materials = useQuery(api.materials.list) || [];
+  const visibleMaterials = materials.filter(m => m.isVisible).slice(0, 2);
+
   return (
     <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
       <div className="p-4 border-b border-neutral-100 flex justify-between items-center bg-neutral-50/50">
         <h3 className="font-bold text-neutral-900">교육자료 & 홍보물</h3>
-        <button className="text-xs font-medium text-neutral-500 hover:text-neutral-900">전체보기</button>
+        <button onClick={() => setActiveTab("materials")} className="text-xs font-medium text-neutral-500 hover:text-neutral-900">전체보기</button>
       </div>
       <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex gap-4 items-center p-3 rounded-lg border border-neutral-100 hover:border-neutral-300 transition-colors cursor-pointer group">
-          <div className="w-10 h-10 rounded bg-red-50 text-red-500 flex items-center justify-center shrink-0 group-hover:bg-red-500 group-hover:text-white transition-colors">
-            <FileText size={20} />
-          </div>
-          <div>
-            <div className="text-sm font-bold text-neutral-900">120겹파이 운영 매뉴얼 V2.1</div>
-            <div className="text-xs text-neutral-500 mt-0.5">교육자료 · PDF</div>
-          </div>
-        </div>
-        <div className="flex gap-4 items-center p-3 rounded-lg border border-neutral-100 hover:border-neutral-300 transition-colors cursor-pointer group">
-          <div className="w-10 h-10 rounded bg-blue-50 text-blue-500 flex items-center justify-center shrink-0 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-            <FolderDown size={20} />
-          </div>
-          <div>
-            <div className="text-sm font-bold text-neutral-900">할로윈 시즌 데블스파이 POP</div>
-            <div className="text-xs text-neutral-500 mt-0.5">홍보물 · JPG / AI</div>
-          </div>
-        </div>
+        {visibleMaterials.length === 0 ? (
+          <div className="col-span-2 text-center text-xs text-neutral-400 py-4">최근 등록된 자료가 없습니다.</div>
+        ) : (
+          visibleMaterials.map((m, i) => (
+            <div key={i} onClick={() => m.fileUrl && window.open(m.fileUrl, "_blank")} className="flex gap-4 items-center p-3 rounded-lg border border-neutral-100 hover:border-neutral-300 transition-colors cursor-pointer group">
+              <div className={cn("w-10 h-10 rounded flex items-center justify-center shrink-0 transition-colors", m.type === "교육자료" ? "bg-red-50 text-red-500 group-hover:bg-red-500 group-hover:text-white" : "bg-blue-50 text-blue-500 group-hover:bg-blue-500 group-hover:text-white")}>
+                {m.type === "교육자료" ? <FileText size={20} /> : <FolderDown size={20} />}
+              </div>
+              <div>
+                <div className="text-sm font-bold text-neutral-900 line-clamp-1">{m.title}</div>
+                <div className="text-xs text-neutral-500 mt-0.5">{m.type} · {m.format}</div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
@@ -484,16 +505,16 @@ function Notices() {
   );
 }
 
-function UpsellBanner() {
+function UpsellBanner({ openInquiry }: { openInquiry: (t: string) => void }) {
   return (
-    <div className="bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl p-6 text-neutral-900 relative overflow-hidden group cursor-pointer shadow-sm">
+    <div onClick={() => openInquiry("추가 메뉴")} className="bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl p-6 text-neutral-900 relative overflow-hidden group cursor-pointer shadow-sm">
       <div className="absolute -right-4 -bottom-4 opacity-20 transform group-hover:scale-110 transition-transform">
         <TrendingUp size={100} />
       </div>
       <div className="relative z-10">
         <span className="inline-block px-2 py-1 bg-neutral-900/10 rounded text-xs font-bold mb-3">추가 도입 추천</span>
         <h3 className="text-lg font-bold mb-2 leading-snug">
-          에그120 추가 도입 상담을
+          추가 메뉴입 상담을
           <br />
           받아보세요
         </h3>
@@ -510,7 +531,7 @@ function UpsellBanner() {
   );
 }
 
-function SupportBanner() {
+function SupportBanner({ openInquiry }: { openInquiry: (t: string) => void }) {
   return (
     <div className="bg-white rounded-xl border border-neutral-200 p-6 shadow-sm flex flex-col justify-center items-center text-center">
       <div className="w-12 h-12 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-600 mb-4">
@@ -523,8 +544,8 @@ function SupportBanner() {
         빠르게 남겨주세요.
       </p>
       <div className="flex gap-2 w-full">
-        <button className="flex-1 py-2 bg-neutral-900 text-white text-sm font-bold rounded">1:1 문의</button>
-        <button className="flex-1 py-2 bg-neutral-100 text-neutral-900 text-sm font-bold rounded">긴급 연락</button>
+        <button onClick={() => openInquiry("1:1 문의")} className="flex-1 py-2 bg-neutral-900 text-white text-sm font-bold rounded">1:1 문의</button>
+        <button onClick={() => openInquiry("건의하기")} className="flex-1 py-2 bg-neutral-100 text-neutral-900 text-sm font-bold rounded">건의하기</button>
       </div>
     </div>
   );

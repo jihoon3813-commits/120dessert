@@ -32,9 +32,11 @@ import { cn } from "../lib/utils";
 import ProductsSection from "./admin/ProductsSection";
 import CategoriesSection from "./admin/CategoriesSection";
 import StoresSection from "./admin/StoresSection";
+import StoreInquiriesSection from "./admin/StoreInquiriesSection";
+import MaterialsSection from "./admin/MaterialsSection";
 
 // Types
-type AdminTab = "inquiries" | "products" | "categories" | "deliveries" | "portalMenus" | "stores";
+type AdminTab = "inquiries" | "products" | "categories" | "deliveries" | "portalMenus" | "stores" | "storeInquiries" | "materials";
 type StatusFilter = "all" | "pending" | "contacted" | "completed";
 type TypeFilter = "all" | "신규 도입" | "공동간판" | "단독 전환" | "추가 도입";
 
@@ -440,9 +442,11 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const sideNav: { id: AdminTab; icon: React.ReactNode; label: string; badge?: number }[] = [
     { id: "inquiries", icon: <LayoutDashboard size={16} />, label: "가맹 도입 문의", badge: inquiries.length },
     { id: "stores", icon: <Store size={16} />, label: "가맹점 관리", badge: stores.length },
+    { id: "storeInquiries", icon: <MessageSquare size={16} />, label: "점주 문의 관리" },
     { id: "products", icon: <ShoppingBag size={16} />, label: "제품 관리" },
     { id: "categories", icon: <Tag size={16} />, label: "카테고리 관리" },
     { id: "deliveries", icon: <Truck size={16} />, label: "배송 관리", badge: orders.filter((o) => o.status === "pending").length },
+    { id: "materials", icon: <FileText size={16} />, label: "교육/홍보물 관리" },
     { id: "portalMenus", icon: <Grid3X3 size={16} />, label: "점주 포털 메뉴", badge: portalMenus.length },
   ];
 
@@ -534,7 +538,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         {/* Page content */}
         <div className="flex-1 p-8 space-y-6">
 
-        {activeTab === "inquiries" ? (
+        {activeTab === "inquiries" && (
           <>
             {/* Stats Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -852,13 +856,13 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               )}
             </div>
           </>
-        ) : activeTab === "stores" ? (
-          <StoresSection />
-        ) : activeTab === "products" ? (
-          <ProductsSection />
-        ) : activeTab === "categories" ? (
-          <CategoriesSection />
-        ) : activeTab === "deliveries" ? (
+        )}
+          {activeTab === "stores" && <StoresSection />}
+          {activeTab === "products" && <ProductsSection />}
+          {activeTab === "categories" && <CategoriesSection />}
+          {activeTab === "storeInquiries" && <StoreInquiriesSection />}
+          {activeTab === "materials" && <MaterialsSection />}
+          {activeTab === "deliveries" && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
@@ -998,7 +1002,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               )}
             </div>
           </div>
-        ) : (
+          )}
+          {activeTab === "portalMenus" && (
           /* Portal Menus Management View */
           <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">

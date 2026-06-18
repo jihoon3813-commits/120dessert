@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
+import FloatingActionBar from "./FloatingActionBar";
 import { useEffect } from "react";
 import { cn } from "../../lib/utils";
 
@@ -30,6 +31,7 @@ export default function Layout() {
       <main className={cn("flex-grow", !isPortalOrAdmin && "pt-16")}>
         <Outlet />
       </main>
+      {!isPortalOrAdmin && <FloatingActionBar />}
       {!isPortalOrAdmin && <Footer />}
     </div>
   );
